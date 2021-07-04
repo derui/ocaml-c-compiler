@@ -1,12 +1,6 @@
-(menhir
- (modules parser))
-(ocamllex
- (modules lexer))
-
-
-(library
- (name ocaml_scheme)
- (public_name ocaml-scheme)
+(executable
+ (name ocaml_c_compiler)
+ (public_name occ)
  (flags (:standard -safe-string))
- (libraries astring ppx_show.runtime)
+ (libraries ppx_show.runtime)
  (preprocess (pps ppx_show)))

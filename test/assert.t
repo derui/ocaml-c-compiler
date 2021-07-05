@@ -14,3 +14,9 @@ Allow to plus/minus operation
   $ cc -o tmp tmp.s
   $ ./tmp
   [21]
+
+Allow to plus/minus operation
+  $ occ " 12 + 34 - 5 " > tmp.s
+  $ cc -o tmp tmp.s
+  $ ./tmp
+  [41]

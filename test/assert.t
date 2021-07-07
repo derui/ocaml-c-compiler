@@ -20,3 +20,9 @@ Allow to plus/minus operation
   $ cc -o tmp tmp.s
   $ ./tmp
   [41]
+
+Allow to echo error message
+  $ occ " 12 + foo - 5 " > tmp.s
+  $ cc -o tmp tmp.s
+  $ ./tmp
+  [41]

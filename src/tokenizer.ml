@@ -81,14 +81,14 @@ let tokenize str =
     else if Lib.Char.is_space source.[0] then tokenize' (Lib.String.substring source 1) (succ read_chars)
     else
       match source.[0] with
-      | ('+' | '-') as c ->
+      | ('+' | '-' | '*' | '/' | '(' | ')') as c ->
           current := new_token ~cur:!current ~raw:(Char.escaped c) ~loc:read_chars RESERVED;
           tokenize' (Lib.String.substring source 1) (succ read_chars)
-      | '0' .. '9'       ->
+      | '0' .. '9' ->
           let value, rest = read_int source in
           current := new_token ~cur:!current ~raw:(string_of_int value) ~value ~loc:read_chars NUM;
           tokenize' rest (read_chars + (String.length source - String.length rest))
-      | c                -> error str read_chars "can not tokenize: %c" c
+      | c -> error str read_chars "can not tokenize: %c" c
   in
   tokenize' str 0;
 

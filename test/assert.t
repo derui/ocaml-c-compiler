@@ -22,7 +22,24 @@ Allow to plus/minus operation
   [41]
 
 Allow to echo error message
-  $ occ " 12 + foo - 5 " > tmp.s
+  $ occ " 12 + foo - 5" > tmp.s
+   12 + foo - 5
+        ^ can not tokenize: f
+  [1]
+Allow to calculate
+  $ occ "5+6*7" > tmp.s
   $ cc -o tmp tmp.s
   $ ./tmp
-  [41]
+  [47]
+
+Allow to calculate
+  $ occ "5*(9-6)" > tmp.s
+  $ cc -o tmp tmp.s
+  $ ./tmp
+  [15]
+
+Allow to calculate
+  $ occ "(3+5)/2" > tmp.s
+  $ cc -o tmp tmp.s
+  $ ./tmp
+  [4]

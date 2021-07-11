@@ -43,3 +43,15 @@ Allow to calculate
   $ cc -o tmp tmp.s
   $ ./tmp
   [4]
+
+Allow to use unary
+  $ occ "-10++20" > tmp.s
+  $ cc -o tmp tmp.s
+  $ ./tmp
+  [10]
+
+Allow to use unary
+  $ occ "+20- -15" > tmp.s
+  $ cc -o tmp tmp.s
+  $ ./tmp
+  [35]

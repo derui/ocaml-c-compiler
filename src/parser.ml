@@ -17,13 +17,17 @@ let parse tokenizer =
       node)
     else Node.make (Node.Num (T.expect_number tokenizer))
   and mul tokenizer =
-    let node = primary tokenizer in
+    let node = unary tokenizer in
 
     let rec loop current =
-      if T.consume tokenizer '*' then loop (Node.make ~lhs:current ~rhs:(primary tokenizer) Node.Mul)
-      else if T.consume tokenizer '/' then loop (Node.make ~lhs:current ~rhs:(primary tokenizer) Node.Div)
+      if T.consume tokenizer '*' then loop (Node.make ~lhs:current ~rhs:(unary tokenizer) Node.Mul)
+      else if T.consume tokenizer '/' then loop (Node.make ~lhs:current ~rhs:(unary tokenizer) Node.Div)
       else current
     in
     loop node
+  and unary tokenizer =
+    if T.consume tokenizer '+' then primary tokenizer
+    else if T.consume tokenizer '-' then Node.make ~lhs:(Node.make (Node.Num 0)) ~rhs:(primary tokenizer) Node.Sub
+    else primary tokenizer
   in
   expr tokenizer

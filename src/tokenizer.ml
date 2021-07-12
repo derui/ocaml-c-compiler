@@ -28,12 +28,12 @@ let error source loc fmt =
   Printf.fprintf stderr "^ ";
   Printf.kfprintf (fun _ -> exit 1) stderr fmt
 
-let consume t c =
+let consume t str =
   match t.token with
   | None       -> false
   | Some token -> (
       match token.kind with
-      | RESERVED when token.raw.[0] = c ->
+      | RESERVED when token.raw = str ->
           next t;
           true
       | _ -> false)
@@ -43,8 +43,8 @@ let expect t op =
   | None       -> error t.original_source 0 "end of tokens"
   | Some token -> (
       match token.kind with
-      | RESERVED when token.raw.[0] = op -> next t
-      | _ -> error t.original_source token.loc "expect failed '%c'" op)
+      | RESERVED when token.raw = op -> next t
+      | _ -> error t.original_source token.loc "expect failed '%s'" op)
 
 let expect_number t =
   match t.token with
@@ -75,7 +75,7 @@ let read_int str =
 let tokenize str =
   let head = { kind = EOF; raw = ""; value = 0; next = None; loc = 0 } in
   let current = ref head in
-
+  let module S = Lib.String in
   let rec tokenize' source read_chars =
     if String.length source = 0 then ()
     else if Lib.Char.is_space source.[0] then tokenize' (Lib.String.substring source 1) (succ read_chars)
@@ -87,6 +87,30 @@ let tokenize str =
       | '0' .. '9' ->
           let value, rest = read_int source in
           current := new_token ~cur:!current ~raw:(string_of_int value) ~value ~loc:read_chars NUM;
+          tokenize' rest (read_chars + (String.length source - String.length rest))
+      | _ when S.start_with source "==" ->
+          current := new_token ~cur:!current ~raw:"==" ~loc:read_chars RESERVED;
+          let rest = S.substring source 2 in
+          tokenize' rest (read_chars + (String.length source - String.length rest))
+      | _ when S.start_with source "!=" ->
+          current := new_token ~cur:!current ~raw:"!=" ~loc:read_chars RESERVED;
+          let rest = S.substring source 2 in
+          tokenize' rest (read_chars + (String.length source - String.length rest))
+      | _ when S.start_with source ">=" ->
+          current := new_token ~cur:!current ~raw:">=" ~loc:read_chars RESERVED;
+          let rest = S.substring source 2 in
+          tokenize' rest (read_chars + (String.length source - String.length rest))
+      | _ when S.start_with source ">" ->
+          current := new_token ~cur:!current ~raw:">" ~loc:read_chars RESERVED;
+          let rest = S.substring source 2 in
+          tokenize' rest (read_chars + (String.length source - String.length rest))
+      | _ when S.start_with source "<=" ->
+          current := new_token ~cur:!current ~raw:"<=" ~loc:read_chars RESERVED;
+          let rest = S.substring source 2 in
+          tokenize' rest (read_chars + (String.length source - String.length rest))
+      | _ when S.start_with source "<" ->
+          current := new_token ~cur:!current ~raw:"<" ~loc:read_chars RESERVED;
+          let rest = S.substring source 2 in
           tokenize' rest (read_chars + (String.length source - String.length rest))
       | c -> error str read_chars "can not tokenize: %c" c
   in

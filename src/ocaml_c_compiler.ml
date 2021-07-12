@@ -12,15 +12,31 @@ let rec gen node =
           Printf.printf "  pop rax\n";
 
           (match node.kind with
-          | Node.Add -> Printf.printf "  add rax, rdi\n"
-          | Node.Sub -> Printf.printf "  sub rax, rdi\n"
-          | Node.Mul -> Printf.printf "  imul rax, rdi\n"
-          | Node.Div ->
+          | Node.Add       -> Printf.printf "  add rax, rdi\n"
+          | Node.Sub       -> Printf.printf "  sub rax, rdi\n"
+          | Node.Mul       -> Printf.printf "  imul rax, rdi\n"
+          | Node.Equal     ->
+              Printf.printf "  cmp rax, rdi\n";
+              Printf.printf "  sete al\n";
+              Printf.printf "  movzb rax, al\n"
+          | Node.NotEqual  ->
+              Printf.printf "  cmp rax, rdi\n";
+              Printf.printf "  setne al\n";
+              Printf.printf "  movzb rax, al\n"
+          | Node.LessThan  ->
+              Printf.printf "  cmp rax, rdi\n";
+              Printf.printf "  setl al\n";
+              Printf.printf "  movzb rax, al\n"
+          | Node.LessEqual ->
+              Printf.printf "  cmp rax, rdi\n";
+              Printf.printf "  setle al\n";
+              Printf.printf "  movzb rax, al\n"
+          | Node.Div       ->
               (* idivは暗黙のうちにrdxとraxをとって、それらを合成して128bitとして、引数で割った後にraxに商を、rdxに余りをセットするという仕様になっている
                  cqoは、raxを128に伸ばしてraxとrdxにセットする、という動きをするため、ここで利用している *)
               Printf.printf "  cqo\n";
               Printf.printf "  idiv rdi\n"
-          | _        -> ());
+          | _              -> ());
           Printf.printf "  push rax\n")
 
 let () =

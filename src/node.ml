@@ -3,7 +3,11 @@ type kind =
   | Sub
   | Mul
   | Div
-  | Num of int
+  | Equal
+  | NotEqual
+  | LessThan
+  | LessEqual
+  | Num       of int
 
 type t = {
   kind : kind;

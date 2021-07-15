@@ -1,6 +1,7 @@
 type token_kind =
   | RESERVED
   | NUM
+  | IDENT
   | EOF
 [@@deriving show]
 
@@ -88,6 +89,10 @@ let tokenize str =
           let value, rest = read_int source in
           current := new_token ~cur:!current ~raw:(string_of_int value) ~value ~loc:read_chars NUM;
           tokenize' rest (read_chars + (String.length source - String.length rest))
+      | 'a' .. 'z' as v ->
+          let rest = S.substring source 1 in
+          current := new_token ~cur:!current ~raw:(Char.escaped v) ~loc:read_chars IDENT;
+          tokenize' rest (read_chars + 1)
       | _ when S.start_with source "==" ->
           current := new_token ~cur:!current ~raw:"==" ~loc:read_chars RESERVED;
           let rest = S.substring source 2 in

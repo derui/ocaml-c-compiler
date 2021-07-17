@@ -39,6 +39,16 @@ let consume t str =
           true
       | _ -> false)
 
+let consume_ident t =
+  match t.token with
+  | None       -> None
+  | Some token -> (
+      match token.kind with
+      | IDENT ->
+          next t;
+          Some token
+      | _     -> None)
+
 let expect t op =
   match t.token with
   | None       -> error t.original_source 0 "end of tokens"
@@ -82,7 +92,7 @@ let tokenize str =
     else if Lib.Char.is_space source.[0] then tokenize' (Lib.String.substring source 1) (succ read_chars)
     else
       match source.[0] with
-      | ('+' | '-' | '*' | '/' | '(' | ')') as c ->
+      | ('+' | '-' | '*' | '/' | '(' | ')' | ';') as c ->
           current := new_token ~cur:!current ~raw:(Char.escaped c) ~loc:read_chars RESERVED;
           tokenize' (Lib.String.substring source 1) (succ read_chars)
       | '0' .. '9' ->
@@ -96,6 +106,10 @@ let tokenize str =
       | _ when S.start_with source "==" ->
           current := new_token ~cur:!current ~raw:"==" ~loc:read_chars RESERVED;
           let rest = S.substring source 2 in
+          tokenize' rest (read_chars + (String.length source - String.length rest))
+      | _ when S.start_with source "=" ->
+          current := new_token ~cur:!current ~raw:"=" ~loc:read_chars RESERVED;
+          let rest = S.substring source 1 in
           tokenize' rest (read_chars + (String.length source - String.length rest))
       | _ when S.start_with source "!=" ->
           current := new_token ~cur:!current ~raw:"!=" ~loc:read_chars RESERVED;

@@ -1,6 +1,7 @@
 module T = Tokenizer
 
 let parse tokenizer =
+  let module S = Lib.String in
   let rec add tokenizer =
     let node = mul tokenizer in
 
@@ -15,7 +16,14 @@ let parse tokenizer =
       let node = equality tokenizer in
       T.expect tokenizer ")";
       node)
-    else Node.make (Node.Num (T.expect_number tokenizer))
+    else
+      let ident = T.consume_ident tokenizer in
+      match ident with
+      | Some token ->
+          let char = token.T.raw.[0] in
+          let offset = (Char.code char - Char.code 'a' + 1) * 8 in
+          Node.make (Node.Lvar offset)
+      | None       -> Node.make (Node.Num (T.expect_number tokenizer))
   and mul tokenizer =
     let node = unary tokenizer in
 
@@ -49,6 +57,23 @@ let parse tokenizer =
       else current
     in
     loop node
+  and assign tokenizer =
+    let node = equality tokenizer in
+
+    if T.consume tokenizer "=" then Node.make ~lhs:node ~rhs:(assign tokenizer) Node.Assign else node
+  and expr tokenizer = assign tokenizer
+  and stmt tokenizer =
+    let node = expr tokenizer in
+    T.expect tokenizer ";";
+    node
+  and program tokenizer =
+    let rec loop accum =
+      if T.at_eof tokenizer then List.rev accum
+      else
+        let accum = stmt tokenizer :: accum in
+        loop accum
+    in
+    loop []
   in
 
-  equality tokenizer
+  program tokenizer

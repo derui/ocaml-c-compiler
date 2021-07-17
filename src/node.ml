@@ -4,10 +4,12 @@ type kind =
   | Mul
   | Div
   | Equal
+  | Assign
   | NotEqual
   | LessThan
   | LessEqual
   | Num       of int
+  | Lvar      of int
 
 type t = {
   kind : kind;

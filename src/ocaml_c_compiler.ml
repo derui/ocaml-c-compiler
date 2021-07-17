@@ -1,10 +1,35 @@
+let gen_lval node =
+  match node with
+  | None      -> ()
+  | Some node -> (
+      match node.Node.kind with
+      | Node.Lvar offset ->
+          Printf.printf "  mov rax, rbp\n";
+          Printf.printf "  sub rax, %d\n" offset;
+          Printf.printf "  push rax\n"
+      | _                ->
+          Printf.eprintf "Left side of assignment is not variable";
+          exit 1)
+
 let rec gen node =
   match node with
   | None      -> ()
   | Some node -> (
       match node.Node.kind with
-      | Num v -> Printf.printf "   push %d\n" v
-      | _     ->
+      | Num v       -> Printf.printf "   push %d\n" v
+      | Node.Lvar _ ->
+          gen_lval @@ Option.some node;
+          Printf.printf "  pop rax\n";
+          Printf.printf " mov rax,[rax]\n";
+          Printf.printf "  push rax\n"
+      | Node.Assign ->
+          gen_lval node.lhs;
+          gen node.rhs;
+          Printf.printf "  pop rdi\n";
+          Printf.printf "  pop rax\n";
+          Printf.printf "  mov [rax], rdi\n";
+          Printf.printf "  push rdi\n"
+      | _           ->
           gen node.lhs;
           gen node.rhs;
 
@@ -44,15 +69,23 @@ let () =
   if Array.length argv <> 2 then failwith "Invalid argument count" else ();
   let source = argv.(1) in
   let tokenizer = Tokenizer.tokenize source in
-  let node = Parser.parse tokenizer in
+  let program = Parser.parse tokenizer in
 
   Printf.printf {|.intel_syntax noprefix
 .globl main
 main:
+  push rbp
+  mov rbp, rsp
+  sub rsp, 208
 |};
 
-  gen (Some node);
+  List.iter
+    (fun node ->
+      gen (Some node);
+      print_endline "  pop rax")
+    program;
 
-  (* stackのtopに値が残っているはずなので、それをraxにロードしてから関数の返り値とする *)
-  Printf.printf "  pop rax\n";
+  (* 最後にraxにpopした式の値が残っているので、rbpを一つ前にcallのアドレスに戻してからretする *)
+  print_endline "  mov rsp, rbp";
+  print_endline "  pop rbp";
   print_endline "  ret"

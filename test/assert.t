@@ -21,11 +21,6 @@ Allow to plus/minus operation
   $ ./tmp
   [41]
 
-Allow to echo error message
-  $ occ " 12 + foo - 5;" > tmp.s
-   12 + foo - 5;
-         ^ expect failed ';'
-  [1]
 Allow to calculate
   $ occ "5+6*7;" > tmp.s
   $ cc -o tmp tmp.s

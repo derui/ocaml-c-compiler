@@ -83,6 +83,17 @@ let read_int str =
   let str' = read' [] str |> String.concat "" in
   (int_of_string str', String.sub str (String.length str') (String.length str - String.length str'))
 
+let read_ident str =
+  let rec read' accum str =
+    if String.length str = 0 then List.rev accum
+    else
+      match str.[0] with
+      | 'a' .. 'z' as v -> read' (Char.escaped v :: accum) (String.sub str 1 (String.length str - 1))
+      | _               -> List.rev accum
+  in
+  let str' = read' [] str |> String.concat "" in
+  (str', String.sub str (String.length str') (String.length str - String.length str'))
+
 let tokenize str =
   let head = { kind = EOF; raw = ""; value = 0; next = None; loc = 0 } in
   let current = ref head in
@@ -99,10 +110,10 @@ let tokenize str =
           let value, rest = read_int source in
           current := new_token ~cur:!current ~raw:(string_of_int value) ~value ~loc:read_chars NUM;
           tokenize' rest (read_chars + (String.length source - String.length rest))
-      | 'a' .. 'z' as v ->
-          let rest = S.substring source 1 in
-          current := new_token ~cur:!current ~raw:(Char.escaped v) ~loc:read_chars IDENT;
-          tokenize' rest (read_chars + 1)
+      | 'a' .. 'z' ->
+          let ident, rest = read_ident source in
+          current := new_token ~cur:!current ~raw:ident ~loc:read_chars IDENT;
+          tokenize' rest (read_chars + (String.length source - String.length rest))
       | _ when S.start_with source "==" ->
           current := new_token ~cur:!current ~raw:"==" ~loc:read_chars RESERVED;
           let rest = S.substring source 2 in

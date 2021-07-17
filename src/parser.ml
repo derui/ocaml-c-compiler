@@ -1,7 +1,10 @@
 module T = Tokenizer
 
+let find_lvar locals name = List.find_opt (fun v -> v.Lvar.name = name) locals
+
 let parse tokenizer =
   let module S = Lib.String in
+  let locals : Lvar.t list ref = ref [] in
   let rec add tokenizer =
     let node = mul tokenizer in
 
@@ -20,9 +23,21 @@ let parse tokenizer =
       let ident = T.consume_ident tokenizer in
       match ident with
       | Some token ->
-          let char = token.T.raw.[0] in
-          let offset = (Char.code char - Char.code 'a' + 1) * 8 in
-          Node.make (Node.Lvar offset)
+          let name = token.T.raw in
+          let lvar =
+            find_lvar !locals name
+            |> Option.fold
+                 ~some:(fun lvar () -> lvar)
+                 ~none:(fun () ->
+                   let lvar =
+                     Lvar.make ~name
+                       ~base_offset:
+                         (List.nth_opt !locals 0 |> Option.map (fun v -> v.Lvar.offset) |> Option.value ~default:0)
+                   in
+                   locals := lvar :: !locals;
+                   lvar)
+          in
+          Node.make (Node.Lvar (lvar ()).Lvar.offset)
       | None       -> Node.make (Node.Num (T.expect_number tokenizer))
   and mul tokenizer =
     let node = unary tokenizer in

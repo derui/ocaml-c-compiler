@@ -17,10 +17,16 @@ let rec gen node =
   | Some node -> (
       match node.Node.kind with
       | Num v       -> Printf.printf "   push %d\n" v
+      | Node.Return ->
+          gen node.lhs;
+          Printf.printf "  pop rax\n";
+          Printf.printf "  mov rsp, rbp\n";
+          Printf.printf "  pop rbp\n";
+          Printf.printf "  ret\n"
       | Node.Lvar _ ->
           gen_lval @@ Option.some node;
           Printf.printf "  pop rax\n";
-          Printf.printf " mov rax,[rax]\n";
+          Printf.printf "  mov rax,[rax]\n";
           Printf.printf "  push rax\n"
       | Node.Assign ->
           gen_lval node.lhs;

@@ -1,5 +1,6 @@
 type token_kind =
   | RESERVED
+  | RETURN
   | NUM
   | IDENT
   | EOF
@@ -38,6 +39,13 @@ let consume t str =
           next t;
           true
       | _ -> false)
+
+let consume_kind t kind =
+  match t.token with
+  | Some token when token.kind = kind ->
+      next t;
+      true
+  | _ -> false
 
 let consume_ident t =
   match t.token with
@@ -94,6 +102,13 @@ let read_ident str =
   let str' = read' [] str |> String.concat "" in
   (str', String.sub str (String.length str') (String.length str - String.length str'))
 
+let return_token = "return"
+
+let read_return str =
+  let return_size = String.length return_token in
+  let module S = Lib.String in
+  S.start_with str return_token && S.safe_get str return_size |> Option.map Lib.Char.is_alnum = Some true
+
 let tokenize str =
   let head = { kind = EOF; raw = ""; value = 0; next = None; loc = 0 } in
   let current = ref head in
@@ -114,6 +129,11 @@ let tokenize str =
           let ident, rest = read_ident source in
           current := new_token ~cur:!current ~raw:ident ~loc:read_chars IDENT;
           tokenize' rest (read_chars + (String.length source - String.length rest))
+      | _ when read_return source ->
+          current := new_token ~cur:!current ~raw:return_token ~loc:read_chars RETURN;
+          let return_size = String.length return_token in
+          let rest = S.substring source return_size in
+          tokenize' rest (read_chars + return_size)
       | _ when S.start_with source "==" ->
           current := new_token ~cur:!current ~raw:"==" ~loc:read_chars RESERVED;
           let rest = S.substring source 2 in

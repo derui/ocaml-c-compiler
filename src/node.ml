@@ -8,6 +8,7 @@ type kind =
   | NotEqual
   | LessThan
   | LessEqual
+  | Return
   | Num       of int
   | Lvar      of int
 

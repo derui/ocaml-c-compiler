@@ -4,6 +4,8 @@ module Char = struct
   let is_space = function ' ' | '\t' | '\n' -> true | _ -> false
 
   let to_digit = function '0' .. '9' as v -> Some (Char.code v - Char.code '0') | _ -> None
+
+  let is_alnum = function 'a' .. 'z' | 'A' .. 'Z' | '0' .. '9' | '_' -> true | _ -> true
 end
 
 module String = struct
@@ -18,4 +20,6 @@ module String = struct
     assert (substr_len >= 0);
     let substr = String.sub s pos @@ min substr_len str_len in
     substr = str
+
+  let safe_get str pos = if pos < 0 || length str <= pos then None else Some (get str pos)
 end

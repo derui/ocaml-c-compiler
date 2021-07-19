@@ -78,8 +78,10 @@ let parse tokenizer =
     if T.consume tokenizer "=" then Node.make ~lhs:node ~rhs:(assign tokenizer) Node.Assign else node
   and expr tokenizer = assign tokenizer
   and stmt tokenizer =
-    let node = expr tokenizer in
-    T.expect tokenizer ";";
+    let node =
+      if T.consume_kind tokenizer T.RETURN then Node.make ~lhs:(expr tokenizer) Node.Return else expr tokenizer
+    in
+    T.consume tokenizer ";" |> ignore;
     node
   and program tokenizer =
     let rec loop accum =
